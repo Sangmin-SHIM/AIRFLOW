@@ -1,0 +1,2 @@
+# AUTO_GPT
+API KEYS : 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
