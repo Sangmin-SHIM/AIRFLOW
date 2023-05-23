@@ -1,24 +1,21 @@
-from datetime import datetime, timedelta
+from hello import test
+
+from default_args import get_default_args
+from datetime import datetime
 
 from airflow import DAG
 from airflow.operators.bash import BashOperator
 
-default_args = {
-    "owner": "sangminSHIM",
-    'retries': 5,
-    'retry_delay': timedelta(minutes=2)
-    }
-
 with DAG(
     dag_id="first_dag_v5",
-    default_args=default_args,
+    default_args=get_default_args(),
     description="This is our first DAG",
     start_date=datetime(2023, 5, 23),
     schedule_interval="@daily",
 ) as dag:
     task1 = BashOperator(
         task_id="my_first_task",
-        bash_command="echo 'Hello World! This is my first DAG'",
+        bash_command=f"echo '{test()}! This is my first DAG'",
     )
 
     task2 = BashOperator(
