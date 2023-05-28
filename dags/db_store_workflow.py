@@ -157,7 +157,7 @@ def execute_data_combined():
 
 def save_database():
     # Connecting to the geeks database
-    connection = sqlite3.connect('airflow.db')
+    connection = sqlite3.connect('tmp/airflow.db')
     
     # Creating a cursor object to execute
     # SQL queries on a database table
@@ -254,4 +254,3 @@ with DAG(
         )
 
     [task1,task2,task3] >> task4 >> [task5,task6,task7]
-    
