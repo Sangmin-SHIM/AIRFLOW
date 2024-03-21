@@ -73,7 +73,11 @@ x-airflow-common: &airflow-common
     - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
     - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
 
-    - ${AIRFLOW_PROJ_DIR:-.}/tmp:/opt/airflow/tmp
+    - ${AIRFLOW_PROJ_DIR:-.}/html_output:/opt/airflow/html_output
+
+    - ${AIRFLOW_PROJ_DIR:-.}/data_input:/opt/airflow/data_input
+    - ${AIRFLOW_PROJ_DIR:-.}/data_input/csv:/opt/airflow/data_input/csv
+    - ${AIRFLOW_PROJ_DIR:-.}/data_input/coordinate:/opt/airflow/data_input/coordinate
 
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on: &airflow-common-depends-on
@@ -233,8 +237,8 @@ services:
           echo "   https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html#before-you-begin"
           echo
         fi
-        mkdir -p /sources/{logs,dags,plugins,tmp}
-        chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins,tmp}
+        mkdir -p /sources/{logs,dags,plugins,html_output,data_input}
+        chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins,html_output,data_input}
         exec /entrypoint airflow version
     # yamllint enable rule:line-length
     environment:
