@@ -13,6 +13,11 @@ import itertools
 import folium
 from folium import plugins
 from branca.element import Template, MacroElement
+
+import aiohttp
+import aiofiles
+import asyncio
+
 from coordinate import clean_df_coordinate
 from csv_process import (
     generate_template,
@@ -30,6 +35,27 @@ from csv_process import (
 folder=Variable.get("DATA_INPUT_FOLDER")
 csv_folder=Variable.get("CSV_FOLDER")
 
+def download_election_data_sync():
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(download_election_data())
+    
+async def download_election_data():
+    task_identifiers=["PR_12","PR_17_T1","PR_17_T2","PR_22_T1","PR_22_T2"]
+
+    for identifier in task_identifiers:
+        url = Variable.get(f"URL_TXT_{identifier}")
+        original_file = Variable.get(f"ORIGINAL_TXT_{identifier}")
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                if response.status == 200:
+                    print("download success")
+                    f = await aiofiles.open(f'{folder}/{original_file}', mode="wb")
+                    await f.write(await response.read())
+                    await f.close()
+                    
+                else:
+                    print("failed")
+            
 def generate_coordinate_data():
     excel=Variable.get("ORIGINAL_EXCEL_GEO_BUREAUX_DE_VOTE")
     df_coordinate = pd.read_excel(f'{folder}/{excel}')
@@ -236,22 +262,30 @@ dag = DAG(
     }
 )
 
-generate_coordinate_data_task = PythonOperator(
-    task_id='generate_coordinate_data',
-    python_callable=generate_coordinate_data,
+download_election_data_task = PythonOperator(
+    task_id='download_election_data',
+    python_callable=download_election_data_sync,
     dag=dag
 )
 
-process_2017_2022_result = PythonOperator(
-    task_id='process_2017_2022_result',
-    python_callable=process_2017_2022_result,
-    dag=dag
-)
+# generate_coordinate_data_task = PythonOperator(
+#     task_id='generate_coordinate_data',
+#     python_callable=generate_coordinate_data,
+#     dag=dag
+# )
 
-process_2012_result = PythonOperator(
-    task_id='process_2012_result',
-    python_callable=process_2012_result,
-    dag=dag
-)
+# process_2017_2022_result_task = PythonOperator(
+#     task_id='process_2017_2022_result',
+#     python_callable=process_2017_2022_result,
+#     dag=dag
+# )
 
-generate_coordinate_data_task>>[process_2017_2022_result, process_2012_result]
+# process_2012_result_task = PythonOperator(
+#     task_id='process_2012_result',
+#     python_callable=process_2012_result,
+#     dag=dag
+# )
+
+
+download_election_data_task
+# generate_coordinate_data_task>>[process_2017_2022_result_task, process_2012_result_task]
