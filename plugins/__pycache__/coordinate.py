@@ -1,17 +1,15 @@
-
+import pandas as pd
 import datetime
 
 def clean_df_coordinate(df_coordinate):
-    cleaned_df_coordinate = df_coordinate[df_coordinate["longitude"].notnull()]
+    df_coordinate= df_coordinate[df_coordinate["latitude"].notnull()]
+    df_coordinate= df_coordinate[df_coordinate["longitude"].notnull()]
+
+    df_coordinate=df_coordinate[df_coordinate.longitude.apply(type) != datetime.datetime]
+    df_coordinate=df_coordinate[df_coordinate.latitude.apply(type) != datetime.datetime]
+    df_coordinate=df_coordinate[df_coordinate.longitude.apply(type) != str]
+    df_coordinate=df_coordinate[df_coordinate.latitude.apply(type) != str]
+
+    df_coordinate=df_coordinate.sort_values(['commune_code','code'],ascending=True)
     
-    cleaned_df_coordinate=cleaned_df_coordinate[df_coordinate.commune_code.apply(type) != datetime.datetime]
-    cleaned_df_coordinate=cleaned_df_coordinate[df_coordinate.longitude.apply(type) != datetime.datetime]
-    cleaned_df_coordinate=cleaned_df_coordinate[df_coordinate.latitude.apply(type) != datetime.datetime]
-    cleaned_df_coordinate=cleaned_df_coordinate[df_coordinate.code.apply(type) != datetime.datetime]
-    
-    cleaned_df_coordinate=cleaned_df_coordinate[df_coordinate.commune_code.apply(type) != str]
-    cleaned_df_coordinate=cleaned_df_coordinate[df_coordinate.longitude.apply(type) != str]
-    cleaned_df_coordinate=cleaned_df_coordinate[df_coordinate.latitude.apply(type) != str]
-    cleaned_df_coordinate=cleaned_df_coordinate[df_coordinate.code.apply(type) != str]
-    
-    return cleaned_df_coordinate
+    return df_coordinate

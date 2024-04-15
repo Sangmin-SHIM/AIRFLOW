@@ -101,6 +101,13 @@ def match_col_coordinate_with_election(df_coordinate):
     # Matching the column name for fusioning with Election présidentielle
     df_coordinate.rename(columns={'code':'Code du b.vote'}, inplace=True)
     df_coordinate.rename(columns={'commune_code':'Code du département'}, inplace=True)
+    
+    df_coordinate['Code du b.vote'] = pd.to_numeric(df_coordinate['Code du b.vote'], errors='coerce')
+    df_coordinate['Code du département'] = pd.to_numeric(df_coordinate['Code du département'], errors='coerce')
+
+    df_coordinate['Code du b.vote'] = df_coordinate['Code du b.vote'].astype(float)
+    df_coordinate['Code du département'] = df_coordinate['Code du département'].astype(float)
+    
     return df_coordinate
 
 # --------------------------------

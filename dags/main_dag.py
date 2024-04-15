@@ -13,6 +13,9 @@ import itertools
 import folium
 from folium import plugins
 from branca.element import Template, MacroElement
+import os
+import gzip
+import shutil
 
 import aiohttp
 import aiofiles
@@ -34,6 +37,32 @@ from csv_process import (
     
 folder=Variable.get("DATA_INPUT_FOLDER")
 csv_folder=Variable.get("CSV_FOLDER")
+
+def download_geo_data_sync():
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(download_geo_data())
+    
+async def download_geo_data():
+    task_identifier = "GEO_BUREAUX_DE_VOTE"
+    url = Variable.get(f"URL_{task_identifier}")
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            if response.status == 200:
+                print("download success")
+                
+                f = await aiofiles.open('./geo_bureaux_de_vote.gz', mode="wb")
+                
+                await f.write(await response.read())
+                await f.close()
+                
+                with gzip.open('./geo_bureaux_de_vote.gz', 'rb') as f_in:
+                    with open(f'{folder}/geo_bureaux_de_vote.csv', 'wb') as f_out:
+                        shutil.copyfileobj(f_in, f_out)
+                
+                os.remove('./geo_bureaux_de_vote.gz')
+            else:
+                print("failed")
+    
 
 def download_election_data_sync():
     loop = asyncio.get_event_loop()
@@ -57,18 +86,17 @@ async def download_election_data():
                     print("failed")
             
 def generate_coordinate_data():
-    excel=Variable.get("ORIGINAL_EXCEL_GEO_BUREAUX_DE_VOTE")
-    df_coordinate = pd.read_excel(f'{folder}/{excel}')
+    csv_file = Variable.get("ORIGINAL_CSV_GEO_BUREAUX_DE_VOTE")
+    df_coordinate = pd.read_csv(f'{folder}/{csv_file}')
     
     df_coordinate= clean_df_coordinate(df_coordinate)
     df_coordinate=df_coordinate.sort_values(['commune_code','code'],ascending=True)
 
-    excel_coordinate='coordinate.xlsx'
-    df_coordinate.to_excel(f'{folder}/coordinate/{excel_coordinate}')
+    df_coordinate.to_csv(f'{folder}/coordinate/coordinate.csv')
     
 def process_2017_2022_result():
     task_identifiers=["PR_17_T1","PR_17_T2","PR_22_T1","PR_22_T2"]
-    read_coordinate=pd.read_excel(f'{folder}/coordinate/coordinate.xlsx')
+    read_coordinate=pd.read_csv(f'{folder}/coordinate/coordinate.csv')
     df_coordinate=match_col_coordinate_with_election(read_coordinate)
     
     for identifier in task_identifiers:
@@ -158,7 +186,7 @@ def process_2017_2022_result():
 def process_2012_result():
     identifier="PR_12"
     tour_list=[1,2]
-    read_coordinate=pd.read_excel(f'{folder}/coordinate/coordinate.xlsx')
+    read_coordinate=pd.read_csv(f'{folder}/coordinate/coordinate.csv')
     df_coordinate=match_col_coordinate_with_election(read_coordinate)
 
     # ----------------------
@@ -262,30 +290,36 @@ dag = DAG(
     }
 )
 
+download_geo_data_task = PythonOperator(
+    task_id='download_geo_data',
+    python_callable=download_geo_data_sync,
+    dag=dag
+)
+
+
 download_election_data_task = PythonOperator(
     task_id='download_election_data',
     python_callable=download_election_data_sync,
     dag=dag
 )
 
-# generate_coordinate_data_task = PythonOperator(
-#     task_id='generate_coordinate_data',
-#     python_callable=generate_coordinate_data,
-#     dag=dag
-# )
+generate_coordinate_data_task = PythonOperator(
+    task_id='generate_coordinate_data',
+    python_callable=generate_coordinate_data,
+    dag=dag
+)
 
-# process_2017_2022_result_task = PythonOperator(
-#     task_id='process_2017_2022_result',
-#     python_callable=process_2017_2022_result,
-#     dag=dag
-# )
+process_2017_2022_result_task = PythonOperator(
+    task_id='process_2017_2022_result',
+    python_callable=process_2017_2022_result,
+    dag=dag
+)
 
-# process_2012_result_task = PythonOperator(
-#     task_id='process_2012_result',
-#     python_callable=process_2012_result,
-#     dag=dag
-# )
+process_2012_result_task = PythonOperator(
+    task_id='process_2012_result',
+    python_callable=process_2012_result,
+    dag=dag
+)
 
 
-download_election_data_task
-# generate_coordinate_data_task>>[process_2017_2022_result_task, process_2012_result_task]
+[download_geo_data_task, download_election_data_task] >> generate_coordinate_data_task >> [process_2017_2022_result_task, process_2012_result_task]
