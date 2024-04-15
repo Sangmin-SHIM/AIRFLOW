@@ -1,5 +1,8 @@
 import pandas as pd
 import re
+from dbfpy3 import dbf
+import csv
+import os
 
 # --------------------------------
 # Global functions
@@ -296,3 +299,22 @@ def get_pivot_table_2012(df_election):
     df_PIVOT['% Voix/Exp_le_plus_voté'] = round((df_PIVOT['Vote le plus voté']/df_PIVOT['Exprimés'])*100,2)    
     
     return df_PIVOT
+
+# --------------------------------
+# Social data cleaning
+# --------------------------------
+async def convert_dbf_to_csv(filename):
+    if filename.endswith('.dbf'):
+        csv_fn = filename[:-4]+ ".csv"
+        with open(csv_fn,'wb') as csvfile:
+            in_db = dbf.Dbf(filename)
+            out_csv = csv.writer(csvfile)
+            names = []
+            for field in in_db.header.fields:
+                names.append(field.name)
+            out_csv.writerow(names)
+            for rec in in_db:
+                out_csv.writerow(rec.fieldData)
+            in_db.close()
+    else:
+        print("Filename does not end with .dbf")
