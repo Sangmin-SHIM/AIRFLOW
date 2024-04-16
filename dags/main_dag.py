@@ -137,6 +137,12 @@ async def process_social_data():
     
     time.sleep(5)
     for zip_file in zip_files:
+        
+        # Former csv file    
+        if os.path.exists(f'{INPUT_FOLDER}/social_data/{zip_file["file_name"]}.csv'):
+            os.remove(f'{INPUT_FOLDER}/social_data/{zip_file["file_name"]}.csv')
+        
+        
         dbf = Dbf5(f'{INPUT_FOLDER}/social_data/{zip_file["file_name"]}')
         dbf.to_csv(f'{INPUT_FOLDER}/social_data/{zip_file["file_name"]}.csv')
         
@@ -397,8 +403,12 @@ upsert_social_data_to_db_task = PythonOperator(
     dag=dag
 )
 
-main_task = EmptyOperator(
-    task_id='main',
+start_task = EmptyOperator(
+    task_id='start',
+)
+
+end_task = EmptyOperator(
+    task_id='end',
 )
 
 # ----------------------
@@ -408,9 +418,9 @@ main_task = EmptyOperator(
 # ----------------------
 # (1) Election Data ----
 # ----------------------
-main_task>>[download_geo_data_task,download_election_data_task] >> generate_coordinate_data_task >> [process_2017_2022_result_task, process_2012_result_task]
+start_task>>[download_geo_data_task,download_election_data_task] >> generate_coordinate_data_task >> [process_2017_2022_result_task, process_2012_result_task] >> end_task
 
 # ----------------------
 # (2) Social Data ------
 # ----------------------
-main_task>>download_social_data_task >> process_social_data_task >> upsert_social_data_to_db_task
+start_task>>download_social_data_task >> process_social_data_task >> upsert_social_data_to_db_task >> end_task
