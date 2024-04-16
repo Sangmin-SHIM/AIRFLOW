@@ -2,16 +2,16 @@ from airflow import DAG
 
 from airflow.operators.python_operator import PythonOperator
 
+from airflow.operators.empty import EmptyOperator
+
+
 from airflow.utils.dates import days_ago
 from airflow.models import Variable
 from airflow.models.param import Param
 
 import pandas as pd
-import re
 import random
-import itertools
 import folium
-from folium import plugins
 from branca.element import Template, MacroElement
 import os
 import gzip
@@ -35,9 +35,9 @@ from csv_process import (
     convert_txt_to_csv_2012,
     get_headers_2012,
     clean_pd_df_election_2012,
-    get_pivot_table_2012,
-    convert_dbf_to_csv)
+    get_pivot_table_2012)
     
+from database import get_db_connection
 INPUT_FOLDER=Variable.get("DATA_INPUT_FOLDER")
 CSV_FOLDER=Variable.get("CSV_FOLDER")
 
@@ -60,7 +60,7 @@ async def download_social_data():
             async with session.get(url) as response:
                 if response.status == 200:
                     print("download success")
-                    f = await aiofiles.open(f'{INPUT_FOLDER}/{identifier}.{ext}', mode="wb")
+                    f = await aiofiles.open(f'{INPUT_FOLDER}/social_data/{identifier}.{ext}', mode="wb")
                     await f.write(await response.read())
                     await f.close()
                     
@@ -131,7 +131,7 @@ async def process_social_data():
         {"identifier":"URL_BIRTH_17","file_name":"nais2017.dbf"},{"identifier":"URL_DEATH_17","file_name":"dec2017.dbf"}]
 
     for zip_file in zip_files:
-        with ZipFile(f'{INPUT_FOLDER}/{zip_file["identifier"]}.zip', 'r') as zObject: 
+        with ZipFile(f'{INPUT_FOLDER}/social_data/{zip_file["identifier"]}.zip', 'r') as zObject: 
             zObject.extract(f'{zip_file["file_name"]}', path=f'{INPUT_FOLDER}/social_data') 
         zObject.close() 
     
@@ -140,7 +140,7 @@ async def process_social_data():
         dbf = Dbf5(f'{INPUT_FOLDER}/social_data/{zip_file["file_name"]}')
         dbf.to_csv(f'{INPUT_FOLDER}/social_data/{zip_file["file_name"]}.csv')
         
-        os.remove(f'{INPUT_FOLDER}/{zip_file["identifier"]}.zip')
+        os.remove(f'{INPUT_FOLDER}/social_data/{zip_file["identifier"]}.zip')
         os.remove(f'{INPUT_FOLDER}/social_data/{zip_file["file_name"]}')
 
 def process_2017_2022_result():
@@ -327,6 +327,20 @@ def process_2012_result():
         # ---------------
         map.get_root().add_child(macro)
         map.save(f'html_output/{identifier}_T{tour}.html')            
+
+def upsert_social_data_to_db():
+    task_csv_to_db_idenfiers=[{"file_name":"dec2017.dbf.csv", "table_name":"death", "delimiter":","},{"file_name":"nais2017.dbf.csv", "table_name":"birth", "delimiter":","},{"file_name":"URL_CSV_CRIME.csv", "table_name":"crime", "delimiter":";"},{"file_name":"URL_CSV_DPAE.csv", "table_name":"dpae", "delimiter":";"}]
+    
+    for task_csv_to_db_idenfier in task_csv_to_db_idenfiers:
+        file_name=task_csv_to_db_idenfier["file_name"]
+        table_name=task_csv_to_db_idenfier["table_name"]
+        delimiter=task_csv_to_db_idenfier["delimiter"]
+        
+        df = pd.read_csv(f'{INPUT_FOLDER}/social_data/{file_name}', delimiter=delimiter)
+        
+        conn = get_db_connection()
+        df.to_sql(table_name, conn, if_exists='replace', index=False)
+    
             
 dag = DAG(
     'france_president_election_with_social_impact',
@@ -377,7 +391,26 @@ process_social_data_task = PythonOperator(
     dag=dag
 )
 
+upsert_social_data_to_db_task = PythonOperator(
+    task_id='upsert_social_data_to_db',
+    python_callable=upsert_social_data_to_db,
+    dag=dag
+)
+
+main_task = EmptyOperator(
+    task_id='main',
+)
+
 # ----------------------
 # TASK -----------------
 # ----------------------
-[download_geo_data_task, download_election_data_task, download_social_data_task, process_social_data_task] >> generate_coordinate_data_task >> [process_2017_2022_result_task, process_2012_result_task]
+
+# ----------------------
+# (1) Election Data ----
+# ----------------------
+main_task>>[download_geo_data_task,download_election_data_task] >> generate_coordinate_data_task >> [process_2017_2022_result_task, process_2012_result_task]
+
+# ----------------------
+# (2) Social Data ------
+# ----------------------
+main_task>>download_social_data_task >> process_social_data_task >> upsert_social_data_to_db_task

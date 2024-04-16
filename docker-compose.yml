@@ -160,8 +160,8 @@ services:
       start_period: 30s
     environment:
       <<: *airflow-common-env
-      # Required to handle warm shutdown of the celery workers properly
-      # See https://airflow.apache.org/docs/docker-stack/entrypoint.html#signal-propagation
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN_SOCIAL: postgresql+psycopg2://social_user:social_pass@social_postgres/social_data
+
       DUMB_INIT_SETSID: "0"
     restart: always
     depends_on:
@@ -287,5 +287,24 @@ services:
       airflow-init:
         condition: service_completed_successfully
 
+  social_postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: social_data
+    volumes:
+      - social-db-volume:/var/lib/postgresql/data
+      - ./init_scripts:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+    restart: always
+
 volumes:
   postgres-db-volume:
+  social-db-volume:
