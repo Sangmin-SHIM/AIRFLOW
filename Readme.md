@@ -1,6 +1,6 @@
 # Airflow Docker Compose Setup
 This repository contains the Docker Compose configuration necessary for setting up Apache Airflow with a CeleryExecutor, using PostgreSQL for the database and Redis as the broker. It is designed for development and testing purposes, not for a production environment.
-
+<img src="https://media.discordapp.net/attachments/1204411401821626458/1230150619264843887/image.png?ex=6632460a&is=661fd10a&hm=754feb388d2793e60ad66bcb94ecb58c80a9b0b1777c447ca55998001f1306c3&=&format=webp&quality=lossless">
 
 ## Technical Details
 This setup includes several services configured to ensure that Airflow runs smoothly:
@@ -41,6 +41,7 @@ After starting the services, you need to make sure that Airflow is properly init
 - Visit the Airflow web interface at http://localhost:8080.
 - Log in with the default credentials (username: airflow, password: airflow).
 - Import the necessary configuration variables by navigating to Admin > Variables in the Airflow dashboard. Here, use the Import Variables option to upload the airflow_variables.json file from your repository to configure the environment correctly.
+<img src="https://media.discordapp.net/attachments/1204411401821626458/1230151255691759616/image.png?ex=663246a2&is=661fd1a2&hm=6d9c431c66a054f0fc6aed61148cdd2310f0be720df88c6a00341b5a143940d0&=&format=webp&quality=lossless">
 #### Accessing Airflow
 The Airflow web interface can be accessed at http://localhost:8080 after the services are up and running. Use the credentials mentioned above to log in.
 
