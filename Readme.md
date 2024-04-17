@@ -2,6 +2,11 @@
 This repository contains the Docker Compose configuration necessary for setting up Apache Airflow with a CeleryExecutor, using PostgreSQL for the database and Redis as the broker. It is designed for development and testing purposes, not for a production environment.
 <img src="https://media.discordapp.net/attachments/1204411401821626458/1230150619264843887/image.png?ex=6632460a&is=661fd10a&hm=754feb388d2793e60ad66bcb94ecb58c80a9b0b1777c447ca55998001f1306c3&=&format=webp&quality=lossless">
 
+## Flows and tasks
+There are 2 chains of tasks in this project:
+- The first chain consists of 3 tasks for downloading, cleaning and processing the `social data` in order to store it in the database.
+- The second chain consists of 5 tasks for downloading, cleaning and processing the `elections` and `voting places coordinates data` in order to generate the html files of maps of elections data for all the voting places in France.
+
 ## Technical Details
 This setup includes several services configured to ensure that Airflow runs smoothly:
 
