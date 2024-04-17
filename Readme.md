@@ -40,7 +40,7 @@ After starting the services, you need to make sure that Airflow is properly init
 
 - Visit the Airflow web interface at http://localhost:8080.
 - Log in with the default credentials (username: airflow, password: airflow).
-- Import the necessary configuration variables by navigating to Admin > Variables in the Airflow dashboard. Here, use the Import Variables option to upload the airflow_variables.json file from your repository to configure the environment correctly.
+- Import the necessary configuration variables by navigating to `Admin > Variables` in the Airflow dashboard. Here, use the Import Variables option to upload the `airflow_variable.json` file from your repository to configure the environment correctly.
 <img src="https://media.discordapp.net/attachments/1204411401821626458/1230151255691759616/image.png?ex=663246a2&is=661fd1a2&hm=6d9c431c66a054f0fc6aed61148cdd2310f0be720df88c6a00341b5a143940d0&=&format=webp&quality=lossless">
 
 #### Accessing Airflow
