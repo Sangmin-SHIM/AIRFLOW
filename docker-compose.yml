@@ -288,7 +288,7 @@ services:
         condition: service_completed_successfully
 
   social_postgres:
-    image: postgres:16
+    image: postgres:15.3
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
