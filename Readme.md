@@ -1,11 +1,36 @@
 # Airflow Docker Compose Setup
 This repository contains the Docker Compose configuration necessary for setting up Apache Airflow with a CeleryExecutor, using PostgreSQL for the database and Redis as the broker. It is designed for development and testing purposes, not for a production environment.
-<img src="https://media.discordapp.net/attachments/1204411401821626458/1230150619264843887/image.png?ex=6632460a&is=661fd10a&hm=754feb388d2793e60ad66bcb94ecb58c80a9b0b1777c447ca55998001f1306c3&=&format=webp&quality=lossless">
+
+![image](https://github.com/Sangmin-SHIM/AIRFLOW/assets/93679283/339affa3-2d5f-4885-b2c5-3fe32fd173ac)
+
 
 ## Flows and tasks
 There are 2 chains of tasks in this project:
 - The first chain consists of 3 tasks for downloading, cleaning and processing the `social data` in order to store it in the database.
 - The second chain consists of 5 tasks for downloading, cleaning and processing the `elections` and `voting places coordinates data` in order to generate the html files of maps of elections data for all the voting places in France.
+
+
+
+## Result
+At the end of tasks Airflow, I could visualize the data with application POWER BI. Here are some example.
+
+### 1) French President Election (2012, 2017, 2022)
+
+- [Link](https://mspr.flusin.fr/html_files/12_T1.html)
+- ![image](https://github.com/Sangmin-SHIM/AIRFLOW/assets/93679283/7d4827bd-f324-4a3e-abfc-d49751253fee)
+
+### 2) DPAE (2000 ~ 2024)
+
+- ![image](https://github.com/Sangmin-SHIM/AIRFLOW/assets/93679283/a9192aa8-595d-4385-ad8f-1f69fa23f03b)
+
+### 3) Crime (20216 ~ 2023)
+
+- ![image](https://github.com/Sangmin-SHIM/AIRFLOW/assets/93679283/a8189c3c-d3ae-48df-86bc-0a81a1b6a3de)
+
+### 4) Death & Birth in France (2017)
+
+- ![image](https://github.com/Sangmin-SHIM/AIRFLOW/assets/93679283/2c75b5ff-d76a-45ae-87e8-a6882da51468)
+
 
 ## Technical Details
 This setup includes several services configured to ensure that Airflow runs smoothly:
@@ -46,7 +71,8 @@ After starting the services, you need to make sure that Airflow is properly init
 - Visit the Airflow web interface at http://localhost:8080.
 - Log in with the default credentials (username: airflow, password: airflow).
 - Import the necessary configuration variables by navigating to `Admin > Variables` in the Airflow dashboard. Here, use the Import Variables option to upload the `airflow_variable.json` file from your repository to configure the environment correctly.
-<img src="https://media.discordapp.net/attachments/1204411401821626458/1230151255691759616/image.png?ex=663246a2&is=661fd1a2&hm=6d9c431c66a054f0fc6aed61148cdd2310f0be720df88c6a00341b5a143940d0&=&format=webp&quality=lossless">
+
+![image](https://github.com/Sangmin-SHIM/AIRFLOW/assets/93679283/b9da42f4-f2cb-4d94-a99c-801f2acbcf42)
 
 #### Accessing Airflow
 The Airflow web interface can be accessed at http://localhost:8080 after the services are up and running. Use the credentials mentioned above to log in.
