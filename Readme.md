@@ -31,6 +31,12 @@ At the end of tasks Airflow, I could visualize the data with application POWER B
 
 - ![image](https://github.com/Sangmin-SHIM/AIRFLOW/assets/93679283/2c75b5ff-d76a-45ae-87e8-a6882da51468)
 
+## Subject
+
+For the subject that I've treated, you can see the details in `MSPR (French president election with social data).pdf`
+
+![image](https://github.com/Sangmin-SHIM/AIRFLOW/assets/93679283/96739c4d-d229-4939-a1e5-21b87275fc1c)
+
 
 ## Technical Details
 This setup includes several services configured to ensure that Airflow runs smoothly:
